@@ -12,6 +12,7 @@ import os
 from benchmark.onn import ONN
 
 tf.random.set_seed(0)
+freq = 1000
 
 
 def get_model(n_features_, n_classes_, n_layers_, learning_rate_):
@@ -67,7 +68,7 @@ for file_name in file_list:
         if pred == y[i]:
             cnt += 1
 
-        if (i + 1) % 10 == 0:
+        if (i + 1) % freq == 0:
             print('#{}'.format(i + 1))
             print(cnt / (i + 1))
             curtime = time.time() - time_mark
@@ -100,7 +101,7 @@ for file_name in file_list:
 
     print('#{}'.format(i + 1))
     curtime = time.time() - time_mark
-    print('time for 1000: ', curtime)
+    print('time for {}: '.format(freq), curtime)
     stime += curtime
 
     f.write(
