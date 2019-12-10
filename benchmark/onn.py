@@ -7,7 +7,7 @@ from tensorflow.keras.layers import Dense
 
 class ONN(tf.keras.Model):
     def __init__(self, n_features, n_classes,
-                 n_hidden_units=10, beta=0.99,
+                 n_hidden_units=100, beta=0.99,
                  learning_rate=0.01, s=0.2,
                  n_layers=20):
         super(ONN, self).__init__(name='ONN')
