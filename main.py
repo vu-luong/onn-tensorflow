@@ -9,7 +9,11 @@ from skmultiflow.drift_detection import ADWIN
 
 from benchmark.onn import ONN
 
-filepath = '/Users/AnhVu/Study/PhD/mypaper/online_deep_forest/data/csv/mnist_5_5_abrupt.csv'
+tf.random.set_seed(0)
+tf.config.experimental_run_functions_eagerly(False)
+
+filename = 'electricity-normalized'
+filepath = '/Users/AnhVu/Study/PhD/mypaper/online_deep_forest/data/csv/{}.csv'.format(filename)
 dataset = np.loadtxt(filepath, delimiter=',', dtype=np.float32)
 print(dataset.shape)
 X = dataset[:, :-1]
@@ -39,9 +43,12 @@ cnt = 0
 res = [None] * (n_layers + 1)
 tres = []
 
-s1 = time.time()
-tf.config.experimental_run_functions_eagerly(False)
+f = open("result/{}.csv".format(filename), "w+")
+f.write(
+    "learning evaluation instances,evaluation time (cpu seconds),model cost (RAM-Hours),classified instances,classifications correct (percent),Kappa Statistic (percent),Kappa Temporal Statistic (percent),Kappa M Statistic (percent),model training instances,model serialized size (bytes)\n")
 
+time_mark = time.time()
+stime = 0
 for i in range(X.shape[0]):
 
     inputs = tf.constant(X[i, :], shape=[1, n_features])
@@ -50,13 +57,24 @@ for i in range(X.shape[0]):
     if pred == y[i]:
         cnt += 1
 
-    if i % 1000 == 0:
-        print('#{}'.format(i))
+    if (i + 1) % 10 == 0:
+        print('#{}'.format(i + 1))
         print(cnt / (i + 1))
-        print('time for 1000: ', time.time() - s1)
-        s1 = time.time()
+        curtime = time.time() - time_mark
+        print('time for 1000: ', curtime)
+        time_mark = time.time()
+        stime += curtime
+
+        f.write(
+            "{instances},{time},{ram_hours},{classified_instances},{accuracy},{a},{b},{c},{d},{e}\n".format(
+                instances=i + 1,
+                time=stime,
+                ram_hours=-1,
+                classified_instances=-1,
+                accuracy=(cnt / (i + 1)), a=-1, b=-1, c=-1, d=-1, e=-1)
+        )
+
         print(model.alphas)
-        # pdb.set_trace()
 
     targets = tf.constant(y[i], shape=[1])
 
@@ -68,9 +86,20 @@ for i in range(X.shape[0]):
             del model
             model = get_model()
 
-    try:
-        model.partial_fit(inputs, targets)
-    except:
-        pdb.set_trace()
+    model.partial_fit(inputs, targets)
 
-# terr = np.sum(y == tres) / y.shape[0]
+print('#{}'.format(i + 1))
+curtime = time.time() - time_mark
+print('time for 1000: ', curtime)
+stime += curtime
+
+f.write(
+    "{instances},{time},{ram_hours},{classified_instances},{accuracy},{a},{b},{c},{d},{e}\n".format(
+        instances=i + 1,
+        time=stime,
+        ram_hours=-1,
+        classified_instances=-1,
+        accuracy=(cnt / (i + 1)), a=-1, b=-1, c=-1, d=-1, e=-1)
+)
+
+f.close()

@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Dense
-import pdb
 
 
 class ONN(tf.keras.Model):
@@ -12,6 +11,9 @@ class ONN(tf.keras.Model):
                  learning_rate=0.01, s=0.2,
                  n_layers=20):
         super(ONN, self).__init__(name='ONN')
+        self.MIN_CLIP = -5.0
+        self.MAX_CLIP = 5.0
+
         self.n_features = n_features
         self.n_classes = n_classes
         self.n_hidden_units = n_hidden_units
@@ -70,26 +72,12 @@ class ONN(tf.keras.Model):
         losses = []
         for i in range(len(output_class)):
             losses.append(
-                # tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=output_class[i])[0]
-                self.loss_obj(y_true=y, y_pred=output_class[i])
-                # self.temp
+                tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=output_class[i])[0]
+                # self.loss_obj(y_true=y, y_pred=output_class[i])
             )
 
             tf.debugging.check_numerics(losses[i],
                                         "loss {} contains nan \n {} \n {}".format(i, y, output_class[i]))
-
-            # try:
-            #     tf.debugging.check_numerics(self.temp, "loss {} contains nan".format(i))
-            #     # raise Exception('hehe')
-            # except Exception:
-            #     # print('den day roi')
-            #     # pdb.set_trace()
-            #     # pass
-            #     # raise Exception('quit')
-            #     tf.print("loss {} contains nan".format(i))
-            #     tf.print("y = ", y)
-            #     tf.print("pred = ", output_class[i])
-            #     raise Exception('quit')
 
         return losses
 
@@ -124,9 +112,26 @@ class ONN(tf.keras.Model):
         self.output_layers[0].variables[0].assign_sub(
             self.alphas[0] * self.learning_rate * dV0_weight
         )
+
+        self.output_layers[0].variables[0].assign(
+            tf.clip_by_value(
+                self.output_layers[0].variables[0],
+                clip_value_min=self.MIN_CLIP,
+                clip_value_max=self.MAX_CLIP
+            )
+        )
+
         # update bias
         self.output_layers[0].variables[1].assign_sub(
             self.alphas[0] * self.learning_rate * dV0_bias
+        )
+
+        self.output_layers[0].variables[1].assign(
+            tf.clip_by_value(
+                self.output_layers[0].variables[1],
+                clip_value_min=self.MIN_CLIP,
+                clip_value_max=self.MAX_CLIP
+            )
         )
 
         w = []
@@ -151,9 +156,26 @@ class ONN(tf.keras.Model):
             self.output_layers[i].variables[0].assign_sub(
                 self.alphas[i] * self.learning_rate * dVi_weight
             )
+
+            self.output_layers[i].variables[0].assign(
+                tf.clip_by_value(
+                    self.output_layers[i].variables[0],
+                    clip_value_min=self.MIN_CLIP,
+                    clip_value_max=self.MAX_CLIP
+                )
+            )
+
             # update bias
             self.output_layers[i].variables[1].assign_sub(
                 self.alphas[i] * self.learning_rate * dVi_bias
+            )
+
+            self.output_layers[i].variables[1].assign(
+                tf.clip_by_value(
+                    self.output_layers[i].variables[1],
+                    clip_value_min=self.MIN_CLIP,
+                    clip_value_max=self.MAX_CLIP
+                )
             )
 
             # 2. For hidden layer
@@ -166,12 +188,30 @@ class ONN(tf.keras.Model):
                     b[j] = b[j] + self.alphas[i] * grads[j][1]
 
         for i in range(len(losses) - 1):
+            # Update weight
             self.hidden_layers[i].variables[0].assign_sub(
                 self.learning_rate * w[i]
             )
 
+            self.hidden_layers[i].variables[0].assign(
+                tf.clip_by_value(
+                    self.hidden_layers[i].variables[0],
+                    clip_value_min=self.MIN_CLIP,
+                    clip_value_max=self.MAX_CLIP
+                )
+            )
+
+            # Update bias
             self.hidden_layers[i].variables[1].assign_sub(
                 self.learning_rate * b[i]
+            )
+
+            self.hidden_layers[i].variables[1].assign(
+                tf.clip_by_value(
+                    self.hidden_layers[i].variables[1],
+                    clip_value_min=self.MIN_CLIP,
+                    clip_value_max=self.MAX_CLIP
+                )
             )
 
         for i in range(len(losses)):
