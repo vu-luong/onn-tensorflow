@@ -1,0 +1,7 @@
+# TEST CONFIGURATION BEGIN
+# FileStream(filename='electricity-normalized.csv', target_idx=-1, n_targets=1, cat_features=None)
+# [M0] OnlineDeepLearner(seed=1)
+# EvaluatePrequential(batch_size=1, data_points_for_classification=False, max_samples=5000000, max_time=inf, metrics=['accuracy', 'kappa', 'kappa_t', 'kappa_m', 'running_time', 'model_size'], n_wait=1000, output_file='electricity-normalized.csv', pretrain_size=0, restart_stream=True, show_plot=False)
+# TEST CONFIGURATION END
+id,mean_acc_[M0],current_acc_[M0],mean_kappa_[M0],current_kappa_[M0],mean_kappa_t_[M0],current_kappa_t_[M0],mean_kappa_m_[M0],current_kappa_m_[M0],training_time_[M0],testing_time_[M0],total_running_time_[M0],model_size_[M0]
+75,0.381579,0.381579,-0.024083,-0.024083,-2.357143,-2.357143,-0.958333,-0.620690,69.245835,21.399851,90.287939,549.076172
