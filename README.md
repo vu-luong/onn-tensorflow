@@ -21,5 +21,7 @@ model.partial_fit(inputs, targets)
 
 ```
 
+* See the file `main.py` for prequentially evaluate ONN+ADWIN
+
 ## References
 - [Online Deep Learning: Learning Deep Neural Networks on the Fly](https://arxiv.org/abs/1711.03705)
